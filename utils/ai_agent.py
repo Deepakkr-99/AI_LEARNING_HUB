@@ -5,7 +5,7 @@ import requests
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 # 🔥 Model from your list
-MODEL_NAME = "gemini-1.5-flash"
+MODEL_NAME = "gemini-2.5-flash"
 
 def ask_ai(question):
     try:
@@ -41,6 +41,7 @@ def ask_ai(question):
     except Exception as e:
 
         return f"Error: {str(e)}"
+
 
 
 
