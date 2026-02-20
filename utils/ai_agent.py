@@ -1,7 +1,7 @@
 import requests
 
 # 🔐 Apni Gemini API key yahan paste karo
-GEMINI_API_KEY = "AIzaSyCn4K1Y6N6zgfGBN89Q5HCYxbLkT_Dk898"
+GEMINI_API_KEY = "OPENAI_AI_KEY"
 
 # 🔥 Model from your list
 MODEL_NAME = "gemini-2.5-flash"
@@ -38,4 +38,5 @@ def ask_ai(question):
             return f"Unexpected response: {result}"
 
     except Exception as e:
+
         return f"Error: {str(e)}"
