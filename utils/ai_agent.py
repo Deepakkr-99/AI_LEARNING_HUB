@@ -1,3 +1,4 @@
+import streamlit as st
 import requests
 
 # 🔐 Apni Gemini API key yahan paste karo
@@ -40,5 +41,6 @@ def ask_ai(question):
     except Exception as e:
 
         return f"Error: {str(e)}"
+
 
 
