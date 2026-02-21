@@ -32,7 +32,6 @@ if new_pass:
     st.info(f"Password Strength: {password_strength(new_pass)}")
 
 if st.button("Update Password"):
-
     if not old_pass or not new_pass:
         st.error("Please fill both fields")
     else:
@@ -40,13 +39,10 @@ if st.button("Update Password"):
         user = ref.child(username).get()
 
         if user and user["password"] == hash_password(old_pass):
-
             ref.child(username).update({
                 "password": hash_password(new_pass)
             })
-
             st.success("✅ Password updated successfully!")
-
         else:
             st.error("❌ Old password is incorrect")
 
@@ -54,6 +50,6 @@ if st.button("Update Password"):
 st.markdown("---")
 
 if st.button("🚪 Logout"):
-    del st.session_state['username']
+    st.session_state.pop('username', None)
     st.success("Logged out successfully!")
-    st.switch_page("app.py")
+    st.experimental_rerun()  # Redirect back to login page
