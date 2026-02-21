@@ -16,30 +16,30 @@ def ask_ai(question):
 
         data = {
             "contents": [
-                {
-                    "parts": [
-                        {"text": question}
-                    ]
-                }
+                {"parts": [{"text": question}]}
             ]
         }
 
         response = requests.post(url, headers=headers, json=data, timeout=15)
 
         if response.status_code != 200:
-            return f"Gemini Error: {response.text}"
+            return f"⚠ Gemini API Error: {response.text}"
 
         result = response.json()
 
-        # Safe extraction
+        # Safe extraction using get() chain
         candidates = result.get("candidates")
-        if candidates:
-            return candidates[0]["content"]["parts"][0]["text"]
+        if candidates and len(candidates) > 0:
+            content = candidates[0].get("content")
+            if content and len(content) > 0:
+                parts = content[0].get("parts")
+                if parts and len(parts) > 0:
+                    return parts[0].get("text", "No text found.")
 
-        return "No response generated."
+        return "⚠ No response generated."
 
     except requests.exceptions.Timeout:
         return "⚠ Request timed out. Try again."
 
     except Exception as e:
-        return f"Error: {str(e)}"
+        return f"⚠ Error: {str(e)}"
