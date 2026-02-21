@@ -1,21 +1,45 @@
-import firebase_admin
-from firebase_admin import credentials, db
-import utils.firebase_config # Aapka purana connection logic
+from utils.firebase_config import database
+import pandas as pd
 
+# ---------- Load Quizzes ----------
 def load_quizzes():
-    # Realtime Database se data lane ke liye
-    ref = db.reference('/') 
-    data = ref.get()
-    
-    # Sirf quizzes wale topics ko filter karein
-    quizzes = {k: v for k, v in data.items() if k not in ['users']}
-    return quizzes
+    """
+    Load all quiz topics from Firebase, excluding 'users' node.
+    Returns a list of quizzes: [{"topic": str, "questions": [...]}]
+    """
+    try:
+        data = database.get()
+        if not data:
+            return []
 
-def submit_quiz(username, topic, score):
-    # Results ko "results" folder mein save karne ke liye
-    ref = db.reference(f'results/{username}')
-    ref.push({
-        "topic": topic,
-        "score": score
-    })
-    print("Score save ho gaya!")
+        # Filter out non-quiz keys (like 'users', 'progress', 'results')
+        quizzes = [
+            {"topic": k, "questions": v.get("questions", [])}
+            for k, v in data.items()
+            if k not in ["users", "progress", "results"]
+        ]
+        return quizzes
+
+    except Exception as e:
+        print(f"⚠ Error loading quizzes: {e}")
+        return []
+
+
+# ---------- Submit Quiz ----------
+def submit_quiz(username: str, topic: str, score: int) -> bool:
+    """
+    Save user's quiz score in Firebase under 'results/{username}'.
+    Returns True if saved successfully, False otherwise.
+    """
+    try:
+        ref = database.child(f'results/{username}')
+        ref.push({
+            "topic": topic,
+            "score": score
+        })
+        print(f"✅ Score saved for {username} - {topic}: {score}")
+        return True
+
+    except Exception as e:
+        print(f"⚠ Error submitting quiz for {username}: {e}")
+        return False
