@@ -10,6 +10,8 @@ if 'username' not in st.session_state:
     st.warning("Please login first")
     st.stop()
 
+username = st.session_state['username']
+
 # 🎨 Styling
 st.markdown("""
 <style>
@@ -34,57 +36,67 @@ html, body, [class*="css"]  {
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown(f"<h1 style='color:white;'>👋 Welcome, {st.session_state['username']}</h1>", unsafe_allow_html=True)
-st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
+st.markdown(f"<h1 style='color:white;'>👋 Welcome, {username}</h1>", unsafe_allow_html=True)
 
-# 📊 Get Data from Firebase
-df = get_progress(st.session_state['username'])
+with st.container():
+    st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
 
-if df.empty:
-    st.info("No progress yet! Take quizzes to start tracking.")
-else:
-
-    # 🔎 Safety Check
-    if "Score" not in df.columns:
-        st.error("Score data missing in database.")
-        st.stop()
-
-    df["Score"] = pd.to_numeric(df["Score"], errors="coerce")
-    df = df.dropna(subset=["Score"])
+    # 📊 Get Data from Firebase
+    df = get_progress(username)
 
     if df.empty:
-        st.info("No valid score data found.")
-        st.stop()
-
-    avg_score = round(df["Score"].mean(), 2)
-    best_score = df["Score"].max()
-    total_tests = len(df)
-
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📈 Average Score", avg_score)
-    col2.metric("🏆 Best Score", best_score)
-    col3.metric("📝 Total Tests", total_tests)
-
-    fig = px.line(
-        df,
-        x="Topic",
-        y="Score",
-        markers=True,
-        template="plotly_dark",
-        title="📊 Performance Trend"
-    )
-    st.plotly_chart(fig, use_container_width=True)
-
-    # 🤖 Simple AI Prediction
-    if len(df) >= 2:
-        improvement = df["Score"].iloc[-1] - df["Score"].iloc[0]
-        predicted_score = avg_score + (improvement / len(df))
+        st.info("No progress yet! Take quizzes to start tracking.")
     else:
-        predicted_score = avg_score
+        # 🔎 Safety Check
+        if "Score" not in df.columns:
+            st.error("Score data missing in database.")
+            st.stop()
 
-    predicted_score = max(0, min(100, predicted_score))
+        df["Score"] = pd.to_numeric(df["Score"], errors="coerce")
+        df = df.dropna(subset=["Score"])
 
-    st.subheader("🤖 AI Prediction")
-    st.metric("📊 Predicted Next Score", round(predicted_score, 2))
+        if df.empty:
+            st.info("No valid score data found.")
+            st.stop()
 
-st.markdown("</div>", unsafe_allow_html=True)
+        avg_score = round(df["Score"].mean(), 2)
+        best_score = df["Score"].max()
+        total_tests = len(df)
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("📈 Average Score", avg_score)
+        col2.metric("🏆 Best Score", best_score)
+        col3.metric("📝 Total Tests", total_tests)
+
+        # 🔹 Plot Performance Trend
+        if "Topic" in df.columns:
+            fig = px.line(
+                df,
+                x="Topic",
+                y="Score",
+                markers=True,
+                template="plotly_dark",
+                title="📊 Performance Trend"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Topic data missing; cannot plot trend.")
+
+        # 🤖 Simple AI Prediction
+        if len(df) >= 2:
+            improvement = df["Score"].iloc[-1] - df["Score"].iloc[0]
+            predicted_score = avg_score + (improvement / len(df))
+        else:
+            predicted_score = avg_score
+
+        predicted_score = max(0, min(100, predicted_score))
+
+        st.subheader("🤖 AI Prediction")
+        st.metric("📊 Predicted Next Score", round(predicted_score, 2))
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# 🔐 Logout Option
+if st.button("Logout"):
+    st.session_state.pop("username")
+    st.experimental_rerun()
