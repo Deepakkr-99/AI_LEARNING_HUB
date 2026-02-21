@@ -88,4 +88,4 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # 🔥 Redirect Button
 if st.button("✨ Get Started"):
-    st.switch_page("pages/0_Login.py")
+    st.switch_page("0_Login")  # file name without .py
