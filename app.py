@@ -1,6 +1,6 @@
 import streamlit as st
 
-# Page Config
+# ---------- Page Config ----------
 st.set_page_config(
     page_title="NeuroSpark AI",
     page_icon="🧠",
@@ -86,6 +86,6 @@ st.markdown("""
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# 🔥 Redirect Button
+# ---------- Get Started Button ----------
 if st.button("✨ Get Started"):
-    st.switch_page("0_Login")  # file name without .py
+    st.switch_page("0_Login")  # pages/0_Login.py ke liye exact name
