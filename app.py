@@ -88,4 +88,5 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # ---------- Get Started Button ----------
 if st.button("✨ Get Started"):
-    st.switch_page("0_Login")  # pages/0_Login.py ke liye exact name
+    st.switch_page("Login")  # pages/0_Login.py ke liye exact name
+
