@@ -1,27 +1,17 @@
-import streamlit as st
+# firebase_config.py
 import firebase_admin
 from firebase_admin import credentials, db
-import json
+import streamlit as st
 
-# ---------- FIREBASE INITIALIZATION ----------
+# ✅ Directly get dict from secrets, no json.loads
+firebase_dict = st.secrets["firebase"]
+
+database_url = st.secrets["FIREBASE_DATABASE_URL"]
+
+# Initialize Firebase only once
 if not firebase_admin._apps:
-    try:
-        # Load Firebase service account from secrets
-        firebase_dict = json.loads(st.secrets["firebase"])
-        cred = credentials.Certificate(firebase_dict)
+    cred = credentials.Certificate(firebase_dict)
+    firebase_admin.initialize_app(cred, {"databaseURL": database_url})
 
-        # Initialize app with Realtime Database URL from secrets
-        firebase_admin.initialize_app(
-            cred,
-            {
-                "databaseURL": st.secrets.get("databaseURL", "")
-            }
-        )
-        st.success("Firebase initialized successfully ✅")
-
-    except Exception as e:
-        st.error("Firebase initialization failed ❌")
-        st.exception(e)
-
-# ---------- DATABASE REFERENCE ----------
+# Database reference
 database = db.reference()
