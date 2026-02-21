@@ -9,6 +9,8 @@ if 'username' not in st.session_state:
     st.warning("Please login first")
     st.stop()
 
+username = st.session_state['username']
+
 # ---------- LOAD QUIZZES ----------
 quizzes = load_quizzes()
 
@@ -33,17 +35,17 @@ if not questions:
     st.warning("No questions found for this topic.")
     st.stop()
 
-user_answers = []
+# ---------- QUIZ FORM ----------
+user_answers = [None] * len(questions)  # Initialize answers list
 
 with st.form("quiz_form"):
     for i, q in enumerate(questions):
         st.markdown(f"### Q{i+1}. {q['question']}")
-        answer = st.radio(
+        user_answers[i] = st.radio(
             "Select your answer:",
             q['options'],
             key=f"q_{i}"
         )
-        user_answers.append(answer)
 
     submitted = st.form_submit_button("🚀 Submit Quiz")
 
@@ -54,7 +56,7 @@ if submitted:
         if user_answers[i] == q['answer']
     )
 
-    submit_quiz(st.session_state['username'], topic, score)
-
+    # Submit to Firebase / log progress
+    submit_quiz(username, topic, score)
 
     st.success(f"🎉 You scored {score} out of {len(questions)}!")
