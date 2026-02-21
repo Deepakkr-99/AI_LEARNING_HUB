@@ -1,4 +1,4 @@
-iimport streamlit as st
+import streamlit as st
 from utils.quiz_manager import load_quizzes, submit_quiz
 
 # ---------- PAGE CONFIG ----------
@@ -55,5 +55,6 @@ if submitted:
     )
 
     submit_quiz(st.session_state['username'], topic, score)
+
 
     st.success(f"🎉 You scored {score} out of {len(questions)}!")
