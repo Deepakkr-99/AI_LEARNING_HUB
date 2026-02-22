@@ -1,14 +1,13 @@
+import google.generativeai as genai
 import streamlit as st
-from utils.helper import load_lottie_url
 
-st.set_page_config(page_title="AI Mentor", page_icon="🤖", layout="wide")
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-st.markdown("<h1 style='color:white;'>🤖 AI Mentor Hub</h1>", unsafe_allow_html=True)
-load_lottie_url("https://assets2.lottiefiles.com/packages/lf20_w51pcehl.json", height=200)
-
-question = st.text_area("💬 Ask your AI Mentor:")
-if st.button("🚀 Ask AI") and question.strip() != "":
-    from utils.ai_agent import ask_ai
-    with st.spinner("AI is thinking..."):
-        answer = ask_ai(question)
-        st.markdown(f"<p style='color:white;'>{answer}</p>", unsafe_allow_html=True)
+def ask_ai(question):
+    try:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content(question)
+        return response.text
+    except Exception as e:
+        import traceback
+        return traceback.format_exc()
