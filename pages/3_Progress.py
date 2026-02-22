@@ -10,12 +10,10 @@ if "username" not in st.session_state:
     st.stop()
 
 username = st.session_state["username"]
-
 st.title("📈 Detailed Progress Report")
 
 df = get_progress(username)
 
-# ---------- Prediction Function ----------
 def predict_next_score(df):
     if df.empty:
         return 0
@@ -23,16 +21,14 @@ def predict_next_score(df):
     df = df.copy()
     df["Score"] = pd.to_numeric(df["Score"], errors="coerce").fillna(0)
 
-    if len(df) < 2:
+    if len(df) < 3:
         return round(df["Score"].mean(), 2)
 
-    last = df["Score"].iloc[-1]
-    prev = df["Score"].iloc[-2]
+    recent_avg = df["Score"].tail(3).mean()
+    overall_avg = df["Score"].mean()
 
-    prediction = last + (last - prev)
-    prediction = max(0, min(100, prediction))
-
-    return round(prediction, 2)
+    prediction = (recent_avg * 0.7) + (overall_avg * 0.3)
+    return round(max(0, min(100, prediction)), 2)
 
 
 if df.empty:
@@ -42,23 +38,36 @@ else:
 
     predicted = predict_next_score(df)
 
-    # ---------- Professional Bar Chart ----------
-    st.markdown("### 📊 Topic Performance")
+    # Topic Average Chart
+    topic_avg = df.groupby("Topic")["Score"].mean().reset_index()
+
+    st.markdown("### 📊 Topic-wise Average Performance")
 
     fig = px.bar(
-        df,
+        topic_avg,
         x="Topic",
         y="Score",
         text="Score",
-        template="plotly_dark",
-        title="Scores by Topic"
+        template="plotly_dark"
     )
 
-    fig.update_traces(textposition="outside")
+    fig.update_traces(texttemplate='%{text:.2f}', textposition='outside')
     fig.update_layout(yaxis_range=[0, 100])
 
     st.plotly_chart(fig, use_container_width=True)
 
-    # ---------- AI Prediction Section ----------
+    # Score Distribution
+    st.markdown("### 📈 Score Distribution")
+
+    fig2 = px.histogram(
+        df,
+        x="Score",
+        nbins=10,
+        template="plotly_dark"
+    )
+
+    st.plotly_chart(fig2, use_container_width=True)
+
+    # AI Prediction
     st.markdown("### 🔮 AI Prediction")
-    st.info(f"Based on your performance trend, your next expected score is: {predicted}")
+    st.success(f"Predicted Next Score: {predicted}")
