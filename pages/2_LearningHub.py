@@ -1,16 +1,15 @@
 import sys
 import os
-
-# ----------------- FIX ModuleNotFoundError -----------------
-# Add root folder to path so ai_agent.py can be imported
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 import streamlit as st
-from ai_agent import ask_ai
 import streamlit.components.v1 as components
 
+# ----------------- FIX ModuleNotFoundError -----------------
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from ai_agent import ask_ai  # AI backend import
+
 # ----------------- PAGE CONFIG -----------------
-st.set_page_config(page_title="AI Mentor", page_icon="🤖", layout="centered")
+st.set_page_config(page_title="AI Voice & Text Mentor", page_icon="🤖", layout="centered")
 
 # ----------------- LOGIN CHECK -----------------
 if "username" not in st.session_state:
@@ -27,7 +26,7 @@ if "answer" not in st.session_state:
 st.markdown("""
 <style>
 body { background: linear-gradient(135deg,#1f1c2c,#928dab); }
-.title { text-align:center; font-size:34px; font-weight:800; margin-bottom:25px; color:#00c6ff; }
+.title { text-align:center; font-size:34px; font-weight:800; margin-bottom:20px; color:#00c6ff; }
 .stTextArea>div>div>textarea { font-size:16px; padding:12px; border-radius:12px; border:1px solid #00c6ff; background-color:#1f1c2c; color:white; }
 .stButton>button { border-radius:25px; padding:12px 28px; background: linear-gradient(90deg,#00c6ff,#0072ff); color:white; font-weight:700; border:none; transition:0.3s; }
 .stButton>button:hover { transform: scale(1.05); box-shadow:0 0 20px #00c6ff; }
@@ -46,6 +45,7 @@ voice_text = components.html("""
     </button>
     <p id="status" class="status-text"></p>
 </div>
+
 <script>
 function startDictation() {
     var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -55,7 +55,7 @@ function startDictation() {
     recognition.onresult = function(event) {
         var text = event.results[0][0].transcript;
         document.getElementById("status").innerHTML = "You said: " + text;
-        window.parent.postMessage({type: "streamlit:setComponentValue", value: text},"*");
+        window.parent.postMessage({type:"streamlit:setComponentValue", value:text},"*");
     };
     recognition.onerror = function() { document.getElementById("status").innerHTML = "Mic error ❌"; }
 }
@@ -69,7 +69,7 @@ st.session_state.question = question_input
 # ----------------- ASK AI BUTTON -----------------
 if st.button("🚀 Ask AI"):
     if not st.session_state.question.strip():
-        st.warning("Please enter a question or use the microphone.")
+        st.warning("Please enter a question or speak something.")
     else:
         with st.spinner("AI is thinking... 🤖"):
             st.session_state.answer = ask_ai(st.session_state.question)
