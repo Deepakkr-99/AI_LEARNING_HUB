@@ -1,7 +1,7 @@
 # pages/2_LearningHub.py
 import streamlit as st
 import streamlit.components.v1 as components
-from ai_agent import ask_ai  # Import AI backend
+from ai_agent import ask_ai  # Import your AI backend
 
 # ---------------- Page Setup ----------------
 st.set_page_config(page_title="AI Mentor", page_icon="🤖", layout="centered")
@@ -63,14 +63,17 @@ function startDictation() {
 """, height=200, key="voice_input")
 
 # ---------------- Text Input ----------------
-question = st.text_area("Ask your AI Mentor", value=voice_input if voice_input else "")
+question = st.text_area("Ask your AI Mentor", value=voice_input or "")
 
 # ---------------- Ask AI Button ----------------
 if st.button("🚀 Ask AI"):
-    if question.strip() == "":
+    if not question.strip():
         st.warning("Enter a question first")
     else:
         with st.spinner("AI is thinking..."):
-            answer = ask_ai(question)
-            st.success("AI Response")
-            st.write(answer)
+            try:
+                answer = ask_ai(question)
+                st.success("AI Response")
+                st.write(answer)
+            except Exception as e:
+                st.error(f"Error while fetching AI response: {str(e)}")
