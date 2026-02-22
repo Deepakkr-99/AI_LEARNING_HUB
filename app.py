@@ -22,7 +22,7 @@ body { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); }
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- UI Layout ----------
+# ---------- Landing UI ----------
 st.markdown("""
 <div class="main-container">
     <div class="main-title">🧠 NeuroSpark AI</div>
@@ -44,4 +44,3 @@ st.markdown("<br>", unsafe_allow_html=True)
 if st.button("✨ Get Started"):
     # Set session flag to open login page
     st.session_state["goto_login"] = True
-    st.experimental_rerun()
