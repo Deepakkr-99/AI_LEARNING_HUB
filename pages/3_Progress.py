@@ -1,37 +1,20 @@
+import streamlit as st
+from utils.progress_manager import get_progress
+import plotly.express as px
 import pandas as pd
-from firebase_admin import db
 
-# 🔹 Log Progress for a User
-def log_progress(username, topic, score):
-    try:
-        ref = db.reference(f"progress/{username}")
-        ref.push({
-            "Topic": topic,
-            "Score": score
-        })
-        return True, "Progress logged successfully"
-    except Exception as e:
-        return False, f"Error logging progress: {e}"
+st.set_page_config(page_title="Progress", page_icon="📈", layout="wide")
 
-# 🔹 Get Progress for a User
-def get_progress(username):
-    try:
-        ref = db.reference(f"progress/{username}")
-        data = ref.get()
+if 'username' not in st.session_state:
+    st.warning("Please login first")
+    st.stop()
 
-        if not data:
-            return pd.DataFrame(columns=["Topic", "Score"])
+username = st.session_state['username']
+df = get_progress(username)
 
-        # Convert Firebase data to DataFrame with proper columns
-        df = pd.DataFrame(list(data.values()))
-        # Ensure columns exist
-        if "Topic" not in df.columns:
-            df["Topic"] = ""
-        if "Score" not in df.columns:
-            df["Score"] = 0
-
-        return df
-
-    except Exception as e:
-        print(f"Error fetching progress: {e}")
-        return pd.DataFrame(columns=["Topic", "Score"])
+if df.empty:
+    st.info("No progress yet!")
+else:
+    df["Score"] = pd.to_numeric(df["Score"], errors='coerce').fillna(0)
+    fig = px.bar(df, x="Topic", y="Score", template="plotly_dark", title="Your Progress")
+    st.plotly_chart(fig, use_container_width=True)
