@@ -1,34 +1,34 @@
+# ai_agent.py
 import streamlit as st
 import requests
+import json
 
-MODEL_NAME = "gemini-2.5-flash"
+# Load Gemini API key from Streamlit secrets
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-def ask_ai(question: str) -> str:
+def ask_gemini(prompt: str) -> str:
     """
-    Send question to Gemini API and get AI response.
+    Sends a prompt to Gemini AI and returns the response.
     """
     try:
-        url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
-        headers = {"Content-Type": "application/json"}
-        data = {"contents": [{"parts": [{"text": question}]}]}
-        response = requests.post(url, headers=headers, json=data, timeout=15)
+        url = "https://api.gemini.ai/v1/chat"  # Replace with actual endpoint if different
+        headers = {
+            "Authorization": f"Bearer {GEMINI_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "gemini-2.5",  # your model version
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": 300
+        }
 
-        if response.status_code != 200:
-            return f"⚠ Gemini API Error: {response.text}"
-
+        response = requests.post(url, headers=headers, data=json.dumps(payload))
+        response.raise_for_status()
         result = response.json()
-        candidates = result.get("candidates")
-        if candidates and len(candidates) > 0:
-            content = candidates[0].get("content")
-            if content and len(content) > 0:
-                parts = content[0].get("parts")
-                if parts and len(parts) > 0:
-                    return parts[0].get("text", "No text found.")
-        return "⚠ No response generated."
 
-    except requests.exceptions.Timeout:
-        return "⚠ Request timed out. Try again."
+        # Extract AI response
+        answer = result['choices'][0]['message']['content']
+        return answer
+
     except Exception as e:
-        return f"⚠ Error: {str(e)}"    
-
+        return f"Error: {str(e)}"
