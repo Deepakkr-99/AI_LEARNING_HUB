@@ -1,4 +1,4 @@
-# ai_agent.py
+# utils/ai_agent.py
 import streamlit as st
 import requests
 import json
