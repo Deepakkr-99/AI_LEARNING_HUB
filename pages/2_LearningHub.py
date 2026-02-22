@@ -1,22 +1,24 @@
 # learning_hub.py
 import streamlit as st
 import streamlit.components.v1 as components
-from ai_mentor import ask_ai  # import function from ai_mentor.py
+from ai_agent import ask_ai  # Import your AI Agent
 
+# ---------------- Page Setup ----------------
 st.set_page_config(page_title="AI Mentor", page_icon="🤖", layout="centered")
 
-# Login check
+# 🔐 Login check
 if "username" not in st.session_state:
     st.warning("Please login first")
     st.stop()
 
-# UI Styling
+# ---------------- UI Styling ----------------
 st.markdown("""
 <style>
 .title {
     text-align:center;
     font-size:32px;
     font-weight:700;
+    color:#00c6ff;
 }
 .stButton>button {
     border-radius:25px;
@@ -30,11 +32,7 @@ st.markdown("""
 
 st.markdown('<div class="title">🤖 AI Voice Mentor</div>', unsafe_allow_html=True)
 
-# Session state
-if "question" not in st.session_state:
-    st.session_state["question"] = ""
-
-# Voice input
+# ---------------- Voice Input Component ----------------
 voice_input = components.html("""
 <div style="text-align:center;">
     <button onclick="startDictation()" 
@@ -53,7 +51,7 @@ function startDictation() {
     recognition.start();
 
     recognition.onresult = function(event) {
-        const transcript = event.results[0][0].transcript;
+        let transcript = event.results[0][0].transcript;
         document.getElementById('output').innerText = transcript;
         window.parent.postMessage(
             {type: "streamlit:setComponentValue", value: transcript},
@@ -62,22 +60,15 @@ function startDictation() {
     };
 }
 </script>
-""", height=200, scrolling=False)
+""", height=200, key="voice_input")
 
-if voice_input:
-    st.session_state["question"] = voice_input
+# ---------------- Text Input ----------------
+question = st.text_area("Ask your AI Mentor", value=voice_input if voice_input else "")
 
-# Text input
-st.session_state["question"] = st.text_area(
-    "Ask your AI Mentor",
-    value=st.session_state["question"]
-)
-
-# Ask AI button
+# ---------------- Ask AI Button ----------------
 if st.button("🚀 Ask AI"):
-    question = st.session_state["question"]
     if question.strip() == "":
-        st.warning("Enter question first")
+        st.warning("Enter a question first")
     else:
         with st.spinner("AI is thinking..."):
             answer = ask_ai(question)
