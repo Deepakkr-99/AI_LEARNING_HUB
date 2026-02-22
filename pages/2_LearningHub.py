@@ -1,13 +1,13 @@
 # pages/2_LearningHub.py
 import streamlit as st
 from utils.firebase_config import database
-from utils.ai_agent import ask_gemini  # FIXED import
+from utils.ai_agent import ask_gemini
 
 st.set_page_config(page_title="Learning Hub", layout="wide")
 st.title("📚 Learning Hub")
 
-# Fetch lessons from Firebase
-lessons = database.child("lessons").get().val()  # Ensure 'lessons' exists in your DB
+# Fetch lessons from Firebase (Admin SDK)
+lessons = database.child("lessons").get()  # No .val() needed
 
 if lessons:
     for lesson_id, lesson_data in lessons.items():
