@@ -1,27 +1,29 @@
 import sys
 import os
 
-# Fix for ModuleNotFoundError
+# ----------------- FIX ModuleNotFoundError -----------------
+# Add root folder to path so ai_agent.py can be imported
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import streamlit as st
 from ai_agent import ask_ai
 import streamlit.components.v1 as components
 
+# ----------------- PAGE CONFIG -----------------
 st.set_page_config(page_title="AI Mentor", page_icon="🤖", layout="centered")
 
-# Login check
+# ----------------- LOGIN CHECK -----------------
 if "username" not in st.session_state:
     st.warning("Please login first")
     st.stop()
 
-# Session state
+# ----------------- SESSION STATE -----------------
 if "question" not in st.session_state:
     st.session_state.question = ""
 if "answer" not in st.session_state:
     st.session_state.answer = ""
 
-# Custom CSS
+# ----------------- CUSTOM CSS -----------------
 st.markdown("""
 <style>
 body { background: linear-gradient(135deg,#1f1c2c,#928dab); }
@@ -35,7 +37,7 @@ body { background: linear-gradient(135deg,#1f1c2c,#928dab); }
 
 st.markdown('<div class="title">🎤 AI Voice & Text Mentor</div>', unsafe_allow_html=True)
 
-# Voice Input
+# ----------------- VOICE INPUT -----------------
 voice_text = components.html("""
 <div style="text-align:center;">
     <button onclick="startDictation()" style="padding:12px 25px;border-radius:30px;
@@ -60,11 +62,11 @@ function startDictation() {
 </script>
 """, height=180)
 
-# Text Area
+# ----------------- TEXT AREA -----------------
 question_input = st.text_area("Ask your AI Mentor:", value=st.session_state.question)
 st.session_state.question = question_input
 
-# Ask AI Button
+# ----------------- ASK AI BUTTON -----------------
 if st.button("🚀 Ask AI"):
     if not st.session_state.question.strip():
         st.warning("Please enter a question or use the microphone.")
