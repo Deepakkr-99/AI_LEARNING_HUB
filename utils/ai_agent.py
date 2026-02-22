@@ -1,4 +1,6 @@
+# ai_mentor.py
 import requests
+import streamlit as st
 
 MODEL_NAME = "gemini-2.5-flash"
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
@@ -11,7 +13,7 @@ def ask_ai(question: str) -> str:
         url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
         headers = {"Content-Type": "application/json"}
         data = {"contents": [{"parts": [{"text": question}]}]}
-        response = requests.post(url, headers=headers, json=data, timeout=15)
+        response = requests.post(url, headers=headers, json=data, timeout=20)
 
         if response.status_code != 200:
             return f"⚠ Gemini API Error: {response.text}"
@@ -30,4 +32,3 @@ def ask_ai(question: str) -> str:
         return "⚠ Request timed out. Try again."
     except Exception as e:
         return f"⚠ Error: {str(e)}"
-
