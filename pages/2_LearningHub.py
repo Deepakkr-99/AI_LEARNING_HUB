@@ -1,7 +1,7 @@
-# learning_hub.py
+# pages/2_LearningHub.py
 import streamlit as st
 import streamlit.components.v1 as components
-from ai_agent import ask_ai  # Import your AI Agent
+from ai_agent import ask_ai  # Import AI backend
 
 # ---------------- Page Setup ----------------
 st.set_page_config(page_title="AI Mentor", page_icon="🤖", layout="centered")
