@@ -1,28 +1,54 @@
-import sys
-import os
-
-# Fix ModuleNotFoundError: add root folder to path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 import streamlit as st
-from ai_agent import ask_ai  # Now this works
+import requests
 
-# ---------------- Page Setup ----------------
-st.set_page_config(page_title="AI Mentor", page_icon="🤖", layout="centered")
+# ---------- PAGE CONFIG ----------
+st.set_page_config(page_title="AI Text Mentor", page_icon="🤖", layout="centered")
 
-# 🔐 Login check
+# ---------- LOGIN CHECK ----------
 if "username" not in st.session_state:
     st.warning("Please login first")
     st.stop()
 
-# ---------------- UI Styling ----------------
+# ---------- GEMINI CONFIG ----------
+MODEL_NAME = "gemini-2.5-flash"
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+
+def ask_ai(question: str) -> str:
+    """
+    Send question to Gemini API and get AI response.
+    """
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
+        headers = {"Content-Type": "application/json"}
+        data = {"contents": [{"parts": [{"text": question}]}]}
+
+        response = requests.post(url, headers=headers, json=data, timeout=20)
+
+        if response.status_code != 200:
+            return "⚠ Gemini API Error"
+
+        result = response.json()
+        candidates = result.get("candidates")
+
+        if candidates:
+            return candidates[0]["content"]["parts"][0]["text"]
+
+        return "⚠ No response generated."
+
+    except Exception:
+        return "⚠ Error while generating response"
+
+# ---------- CUSTOM CSS ----------
 st.markdown("""
 <style>
+body {
+    background: linear-gradient(135deg,#1f1c2c,#928dab);
+}
 .title {
     text-align:center;
     font-size:32px;
     font-weight:700;
-    color:#00c6ff;
+    margin-bottom:20px;
 }
 .stButton>button {
     border-radius:25px;
@@ -30,24 +56,27 @@ st.markdown("""
     background: linear-gradient(90deg,#00c6ff,#0072ff);
     color:white;
     font-weight:600;
+    border:none;
+    transition:0.3s;
+}
+.stButton>button:hover {
+    transform: scale(1.08);
+    box-shadow:0 0 20px #00c6ff;
 }
 </style>
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="title">🤖 AI Text Mentor</div>', unsafe_allow_html=True)
 
-# ---------------- Text Input ----------------
-question = st.text_area("Ask your AI Mentor")
+# ---------- TEXT INPUT ----------
+question = st.text_area("Ask your AI Mentor:")
 
-# ---------------- Ask AI Button ----------------
+# ---------- ASK BUTTON ----------
 if st.button("🚀 Ask AI"):
-    if not question.strip():
-        st.warning("Enter a question first")
+    if question.strip() == "":
+        st.warning("Please enter a question first.")
     else:
-        with st.spinner("AI is thinking..."):
-            try:
-                answer = ask_ai(question)
-                st.success("AI Response")
-                st.write(answer)
-            except Exception as e:
-                st.error(f"Error while fetching AI response: {str(e)}")
+        with st.spinner("AI is thinking... 🤖"):
+            answer = ask_ai(question)
+            st.success("AI Response")
+            st.write(answer)
