@@ -1,18 +1,20 @@
-# ai_mentor.py
+# ai_agent.py
 import requests
 import streamlit as st
 
+# ---------------- Gemini Config ----------------
 MODEL_NAME = "gemini-2.5-flash"
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 def ask_ai(question: str) -> str:
     """
-    Send question to Gemini API and get AI response.
+    Sends a question to Gemini API and returns the AI response.
     """
     try:
         url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
         headers = {"Content-Type": "application/json"}
         data = {"contents": [{"parts": [{"text": question}]}]}
+
         response = requests.post(url, headers=headers, json=data, timeout=20)
 
         if response.status_code != 200:
