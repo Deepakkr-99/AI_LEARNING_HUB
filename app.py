@@ -7,40 +7,103 @@ st.set_page_config(
     layout="wide"
 )
 
+# ---------- Redirect ----------
+if st.session_state.get("goto_login"):
+    st.switch_page("pages/0_Login.py")
+
 # ---------- Custom CSS ----------
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
-html, body, [class*="css"] { font-family: 'Poppins', sans-serif; }
-body { background: linear-gradient(135deg, #0f2027, #203a43, #2c5364); }
-.main-container { background: rgba(255,255,255,0.08); padding: 40px; border-radius: 20px; backdrop-filter: blur(15px); box-shadow: 0 8px 32px rgba(0,0,0,0.37); text-align:center; margin-top:50px; }
-.main-title { font-size:48px; font-weight:700; color:#ffffff; }
-.subtitle { font-size:20px; color:#e0e0e0; margin-top:15px; }
-.feature-list { text-align:left; font-size:18px; margin-top:25px; color:#ffffff; }
-.stButton>button { border-radius:30px; padding:10px 30px; background: linear-gradient(90deg,#00c6ff,#0072ff); color:white; font-weight:600; border:none; transition:0.3s ease-in-out; }
-.stButton>button:hover { transform: scale(1.08); box-shadow:0px 0px 20px #00c6ff; }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Poppins:wght@300;400;600&display=swap');
+
+body {
+    background: linear-gradient(-45deg, #141e30, #243b55, #1f4037, #99f2c8);
+    background-size: 400% 400%;
+    animation: gradientBG 12s ease infinite;
+}
+
+@keyframes gradientBG {
+    0% {background-position:0% 50%}
+    50% {background-position:100% 50%}
+    100% {background-position:0% 50%}
+}
+
+.hero-card {
+    margin-top:70px;
+    padding:60px;
+    border-radius:25px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(18px);
+    box-shadow: 0 8px 40px rgba(0,0,0,0.4);
+    text-align:center;
+    animation: floatCard 4s ease-in-out infinite;
+}
+
+@keyframes floatCard {
+    0% {transform: translateY(0px);}
+    50% {transform: translateY(-10px);}
+    100% {transform: translateY(0px);}
+}
+
+.main-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size:56px;
+    font-weight:700;
+    background: linear-gradient(90deg,#00f2fe,#4facfe);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    font-family: 'Poppins', sans-serif;
+    font-size:22px;
+    color:#ffffff;
+    margin-top:20px;
+}
+
+.features {
+    margin-top:30px;
+    font-size:18px;
+    color:#ffffff;
+    line-height:1.8;
+}
+
+.stButton>button {
+    margin-top:30px;
+    border-radius:40px;
+    padding:14px 45px;
+    font-size:18px;
+    font-weight:600;
+    background: linear-gradient(90deg,#ff9966,#ff5e62);
+    color:white;
+    border:none;
+    transition: all 0.4s ease;
+}
+
+.stButton>button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 25px #ff5e62;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- Landing UI ----------
+# ---------- Hero Section ----------
 st.markdown("""
-<div class="main-container">
+<div class="hero-card">
     <div class="main-title">🧠 NeuroSpark AI</div>
     <div class="subtitle">Your Intelligent Learning Companion for Smarter Growth 🚀</div>
-    <div class="feature-list">
-        ✔ Login / Sign Up <br>
-        ✔ Smart Dashboard <br>
-        ✔ AI Mentor Hub <br>
-        ✔ Interactive Quizzes <br>
-        ✔ Progress Tracking <br>
-        ✔ Personal Settings
+    <div class="features">
+        ✔ Secure Login & Register <br>
+        ✔ AI Mentor Assistance <br>
+        ✔ Interactive Smart Quizzes <br>
+        ✔ Performance Dashboard <br>
+        ✔ AI Score Prediction <br>
+        ✔ Advanced Progress Tracking
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-st.markdown("<br>", unsafe_allow_html=True)
-
-# ---------- Get Started Button ----------
-if st.button("✨ Get Started"):
-    # Set session flag to open login page
+# ---------- Button ----------
+if st.button("🚀 Get Started"):
     st.session_state["goto_login"] = True
+    st.switch_page("pages/0_Login.py")
