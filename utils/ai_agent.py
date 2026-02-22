@@ -1,4 +1,3 @@
-ai agent me kiu cahnge krenge yeh toh api key se connected haiimport streamlit as st
 import requests
 
 MODEL_NAME = "gemini-2.5-flash"
@@ -31,3 +30,4 @@ def ask_ai(question: str) -> str:
         return "⚠ Request timed out. Try again."
     except Exception as e:
         return f"⚠ Error: {str(e)}"
+
