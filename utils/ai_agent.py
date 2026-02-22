@@ -30,4 +30,5 @@ def ask_ai(question: str) -> str:
     except requests.exceptions.Timeout:
         return "⚠ Request timed out. Try again."
     except Exception as e:
-        return f"⚠ Error: {str(e)}"  voice input bana do unique sa   speech to text bhi kro matlb speech recogination bhi kr do   
+        return f"⚠ Error: {str(e)}"    
+
