@@ -9,18 +9,18 @@ def log_progress(username: str, topic: str, score: int) -> bool:
         })
         return True
     except Exception as e:
-        print(f"Error logging progress: {e}")
+        print("Error logging progress:", e)
         return False
 
 
 def get_progress(username: str) -> pd.DataFrame:
     try:
-        data = database.child("progress").child(username).get().val()
+        data = database.child("progress").child(username).get()
 
         if not data:
             return pd.DataFrame(columns=["Topic", "Score"])
 
-        df = pd.DataFrame(data.values())
+        df = pd.DataFrame(list(data.values()))
 
         if "Topic" not in df.columns:
             df["Topic"] = ""
@@ -31,5 +31,5 @@ def get_progress(username: str) -> pd.DataFrame:
         return df
 
     except Exception as e:
-        print(f"Error fetching progress: {e}")
+        print("Error fetching progress:", e)
         return pd.DataFrame(columns=["Topic", "Score"])
