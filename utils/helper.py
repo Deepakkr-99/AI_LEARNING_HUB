@@ -1,13 +1,14 @@
 import requests
 from streamlit_lottie import st_lottie
+import streamlit as st
 
 def load_lottie_url(url: str, height: int = 150):
     """
-    Load a Lottie animation from a URL and display in Streamlit.
+    Load and display a Lottie animation from URL.
     """
     try:
         r = requests.get(url, timeout=5)
-        r.raise_for_status()  # Raise exception for HTTP errors
+        r.raise_for_status()
         st_lottie(r.json(), height=height)
     except requests.exceptions.RequestException as e:
         print(f"⚠ Failed to load Lottie animation: {e}")
