@@ -1,42 +1,16 @@
+# learning_hub.py
 import streamlit as st
-import requests
 import streamlit.components.v1 as components
+from ai_mentor import ask_ai  # import function from ai_mentor.py
 
 st.set_page_config(page_title="AI Mentor", page_icon="🤖", layout="centered")
 
-# 🔐 Login check
+# Login check
 if "username" not in st.session_state:
     st.warning("Please login first")
     st.stop()
 
-# ---------------- Gemini Config ----------------
-MODEL_NAME = "gemini-2.5-flash"
-GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
-
-def ask_ai(question: str) -> str:
-    try:
-        url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
-        headers = {"Content-Type": "application/json"}
-        data = {"contents": [{"parts": [{"text": question}]}]}
-
-        response = requests.post(url, headers=headers, json=data, timeout=20)
-
-        if response.status_code != 200:
-            return f"⚠ Gemini API Error"
-
-        result = response.json()
-        candidates = result.get("candidates")
-
-        if candidates:
-            return candidates[0]["content"]["parts"][0]["text"]
-
-        return "⚠ No response generated."
-
-    except Exception:
-        return "⚠ Error while generating response"
-
-
-# ---------------- UI Styling ----------------
+# UI Styling
 st.markdown("""
 <style>
 .title {
@@ -56,8 +30,12 @@ st.markdown("""
 
 st.markdown('<div class="title">🤖 AI Voice Mentor</div>', unsafe_allow_html=True)
 
-# ---------------- Voice Input ----------------
-components.html("""
+# Session state
+if "question" not in st.session_state:
+    st.session_state["question"] = ""
+
+# Voice input
+voice_input = components.html("""
 <div style="text-align:center;">
     <button onclick="startDictation()" 
     style="padding:10px 20px;border-radius:20px;
@@ -75,21 +53,29 @@ function startDictation() {
     recognition.start();
 
     recognition.onresult = function(event) {
-        document.getElementById('output').innerText =
-            event.results[0][0].transcript;
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('output').innerText = transcript;
         window.parent.postMessage(
-            {type: "streamlit:setComponentValue", value: event.results[0][0].transcript},
+            {type: "streamlit:setComponentValue", value: transcript},
             "*"
         );
     };
 }
 </script>
-""", height=200)
+""", height=200, scrolling=False)
 
-# ---------------- Text Input ----------------
-question = st.text_area("Ask your AI Mentor")
+if voice_input:
+    st.session_state["question"] = voice_input
 
+# Text input
+st.session_state["question"] = st.text_area(
+    "Ask your AI Mentor",
+    value=st.session_state["question"]
+)
+
+# Ask AI button
 if st.button("🚀 Ask AI"):
+    question = st.session_state["question"]
     if question.strip() == "":
         st.warning("Enter question first")
     else:
