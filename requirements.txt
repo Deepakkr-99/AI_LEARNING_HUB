@@ -5,6 +5,8 @@ plotly
 numpy
 requests
 firebase-admin
+google-generativeai
+
 
 
 
