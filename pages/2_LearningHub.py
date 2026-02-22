@@ -1,5 +1,5 @@
 import streamlit as st
-import requests
+from ai_agent import ask_ai  # Backend AI function
 import streamlit.components.v1 as components
 
 # ---------- PAGE CONFIG ----------
@@ -10,34 +10,12 @@ if "username" not in st.session_state:
     st.warning("Please login first")
     st.stop()
 
-# ---------- GEMINI CONFIG ----------
-MODEL_NAME = "gemini-2.5-flash"
-GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+# ---------- SESSION STATE ----------
+if "question" not in st.session_state:
+    st.session_state.question = ""
 
-def ask_ai(question: str) -> str:
-    """
-    Send question to Gemini API and return AI response.
-    """
-    try:
-        url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
-        headers = {"Content-Type": "application/json"}
-        data = {"contents": [{"parts": [{"text": question}]}]}
-
-        response = requests.post(url, headers=headers, json=data, timeout=20)
-
-        if response.status_code != 200:
-            return "⚠ Gemini API Error"
-
-        result = response.json()
-        candidates = result.get("candidates")
-
-        if candidates:
-            return candidates[0]["content"]["parts"][0]["text"]
-
-        return "⚠ No response generated."
-
-    except Exception as e:
-        return f"⚠ Error: {str(e)}"
+if "answer" not in st.session_state:
+    st.session_state.answer = ""
 
 # ---------- CUSTOM CSS ----------
 st.markdown("""
@@ -73,6 +51,11 @@ body {
     transform: scale(1.05);
     box-shadow:0 0 20px #00c6ff;
 }
+.status-text {
+    color:white;
+    font-weight:600;
+    margin-top:10px;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -88,7 +71,7 @@ voice_text = components.html("""
     font-weight:600;">
     🎙️ Speak Now
     </button>
-    <p id="status" style="margin-top:10px;color:white;font-weight:600;"></p>
+    <p id="status" class="status-text"></p>
 </div>
 
 <script>
@@ -116,14 +99,15 @@ function startDictation() {
 """, height=180)
 
 # ---------- TEXT AREA ----------
-question = st.text_area("Ask your AI Mentor:", value=voice_text or "")
+question_input = st.text_area("Ask your AI Mentor:", value=st.session_state.question)
+st.session_state.question = question_input  # Update session state
 
 # ---------- ASK AI BUTTON ----------
 if st.button("🚀 Ask AI"):
-    if not question.strip():
+    if not st.session_state.question.strip():
         st.warning("Please enter a question or use the microphone.")
     else:
         with st.spinner("AI is thinking... 🤖"):
-            answer = ask_ai(question)
+            st.session_state.answer = ask_ai(st.session_state.question)
             st.success("AI Response")
-            st.write(answer)
+            st.write(st.session_state.answer)
