@@ -2,13 +2,12 @@
 import requests
 import streamlit as st
 
-# ---------------- Gemini Config ----------------
 MODEL_NAME = "gemini-2.5-flash"
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 def ask_ai(question: str) -> str:
     """
-    Sends a question to Gemini API and returns the AI response.
+    Sends question to Gemini API and returns the AI response.
     """
     try:
         url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
