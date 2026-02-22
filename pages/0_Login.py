@@ -1,41 +1,46 @@
+
 import streamlit as st
 from utils.auth_manager import login_user, register_user
 
-# ---------- PAGE CONFIG ----------
-st.set_page_config(page_title="Login - NeuroSpark AI", page_icon="🔑", layout="centered")
+# ---------- Redirect from Landing ----------
+if st.session_state.get("goto_login"):
+    st.session_state.pop("goto_login")  # clear the flag
+
+# ---------- Page Config ----------
+st.set_page_config(
+    page_title="Login - NeuroSpark AI",
+    page_icon="🔑",
+    layout="centered"
+)
+
 st.markdown("## 🔑 Login or Register", unsafe_allow_html=True)
 
-# ---------- INITIALIZE SESSION STATE ----------
+# ---------- Initialize Session ----------
 if "username" not in st.session_state:
     st.session_state["username"] = None
-if "tab" not in st.session_state:
-    st.session_state["tab"] = "Login"
 
-# ---------- SELECT MODE ----------
-tab = st.radio("Select Mode", ["Login", "Register"], index=0 if st.session_state["tab"]=="Login" else 1, horizontal=True)
-st.session_state["tab"] = tab  # remember selected tab
+# ---------- Tab & Inputs ----------
+tab = st.radio("Select Mode", ["Login", "Register"], horizontal=True)
+username = st.text_input("Username")
+password = st.text_input("Password", type="password")
 
-# ---------- INPUTS ----------
-username_input = st.text_input("Username")
-password_input = st.text_input("Password", type="password")
-
-# ---------- SUBMIT BUTTON ----------
+# ---------- Submit Button ----------
 if st.button("Submit"):
     if tab == "Register":
-        success, msg = register_user(username_input, password_input)
+        success, msg = register_user(username, password)
         if success:
             st.success(msg + " You can now login.")
         else:
             st.error(msg)
-    else:  # Login
-        success, msg = login_user(username_input, password_input)
+    else:
+        success, msg = login_user(username, password)
         if success:
-            st.session_state["username"] = username_input
-            st.success(f"{msg} Welcome, {username_input}!")
+            st.session_state["username"] = username
+            st.success(f"{msg} Welcome, {username}!")
         else:
             st.error(msg)
 
-# ---------- SHOW APP OR LOGIN ----------
-if st.session_state["username"]:
+# ---------- Logged-in Content ----------
+if st.session_state.get("username"):
     st.write(f"✅ Logged in as **{st.session_state['username']}**")
-    st.write("You can now access the app content here.")
+    st.write("You can now access the app content here...")
