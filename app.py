@@ -42,8 +42,6 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # ---------- Get Started Button ----------
 if st.button("✨ Get Started"):
-    # ✅ Safe switch_page
-    try:
-        st.switch_page("0_Login")
-    except Exception as e:
-        st.error(f"Error switching page: {e}")
+    # Set session flag to open login page
+    st.session_state["goto_login"] = True
+    st.experimental_rerun()
