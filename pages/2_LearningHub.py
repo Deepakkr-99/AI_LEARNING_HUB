@@ -1,6 +1,11 @@
-# pages/2_LearningHub.py
+import sys
+import os
+
+# Fix ModuleNotFoundError: add root folder to path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import streamlit as st
-from ai_agent import ask_ai  # Import your AI backend
+from ai_agent import ask_ai  # Now this works
 
 # ---------------- Page Setup ----------------
 st.set_page_config(page_title="AI Mentor", page_icon="🤖", layout="centered")
