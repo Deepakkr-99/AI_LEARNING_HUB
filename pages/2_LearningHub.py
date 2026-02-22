@@ -1,6 +1,5 @@
 import streamlit as st
 import google.generativeai as genai
-import speech_recognition as sr
 
 st.set_page_config(page_title="AI Learning Hub", page_icon="📘", layout="wide")
 
@@ -23,41 +22,9 @@ except Exception:
 
 model = genai.GenerativeModel("gemini-2.5-flash")
 
-# ---------------- Voice Input Function ----------------
-def voice_to_text():
-    recognizer = sr.Recognizer()
-    with sr.Microphone() as source:
-        st.info("🎙 Listening... Speak now")
-        audio = recognizer.listen(source)
-
-    try:
-        text = recognizer.recognize_google(audio)
-        return text
-    except:
-        return None
-
 # ---------------- Input Section ----------------
-col1, col2 = st.columns([4,1])
+question = st.text_area("💬 Ask your AI Mentor:")
 
-with col1:
-    question = st.text_area("💬 Ask your AI Mentor:")
-
-with col2:
-    if st.button("🎙 Voice"):
-        voice_text = voice_to_text()
-        if voice_text:
-            st.success("Voice Captured!")
-            question = voice_text
-            st.session_state["voice_question"] = voice_text
-        else:
-            st.error("Voice not recognized")
-
-# If voice was captured earlier
-if "voice_question" in st.session_state:
-    question = st.session_state["voice_question"]
-    st.write("🗣 You said:", question)
-
-# ---------------- Ask AI ----------------
 if st.button("🚀 Ask AI"):
     if question.strip() == "":
         st.warning("Please enter a question.")
