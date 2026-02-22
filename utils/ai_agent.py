@@ -1,125 +1,88 @@
 import streamlit as st
 import requests
-import streamlit.components.v1 as components
+from streamlit_webrtc import webrtc_streamer, AudioProcessorBase, WebRtcMode
+import numpy as np
+import av
+import speech_recognition as sr
 
-# ---------- PAGE CONFIG ----------
-st.set_page_config(page_title="AI Voice Mentor", page_icon="🤖", layout="centered")
-
-# ---------- LOGIN CHECK ----------
-if "username" not in st.session_state:
-    st.warning("Please login first")
-    st.stop()
-
-# ---------- GEMINI CONFIG ----------
 MODEL_NAME = "gemini-2.5-flash"
 GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
 def ask_ai(question: str) -> str:
+    """Send question to Gemini API and get AI response."""
     try:
         url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
         headers = {"Content-Type": "application/json"}
         data = {"contents": [{"parts": [{"text": question}]}]}
-
-        response = requests.post(url, headers=headers, json=data, timeout=20)
+        response = requests.post(url, headers=headers, json=data, timeout=15)
 
         if response.status_code != 200:
-            return "⚠ Gemini API Error"
+            return f"⚠ Gemini API Error: {response.text}"
 
         result = response.json()
         candidates = result.get("candidates")
-
-        if candidates:
-            return candidates[0]["content"]["parts"][0]["text"]
-
+        if candidates and len(candidates) > 0:
+            content = candidates[0].get("content")
+            if content and len(content) > 0:
+                parts = content[0].get("parts")
+                if parts and len(parts) > 0:
+                    return parts[0].get("text", "No text found.")
         return "⚠ No response generated."
 
-    except Exception:
-        return "⚠ Error while generating response"
+    except requests.exceptions.Timeout:
+        return "⚠ Request timed out. Try again."
+    except Exception as e:
+        return f"⚠ Error: {str(e)}"
 
 
-# ---------- CUSTOM CSS ----------
-st.markdown("""
-<style>
-body {
-    background: linear-gradient(135deg,#1f1c2c,#928dab);
-}
-.title {
-    text-align:center;
-    font-size:32px;
-    font-weight:700;
-    margin-bottom:20px;
-}
-.stButton>button {
-    border-radius:25px;
-    padding:10px 25px;
-    background: linear-gradient(90deg,#00c6ff,#0072ff);
-    color:white;
-    font-weight:600;
-    border:none;
-    transition:0.3s;
-}
-.stButton>button:hover {
-    transform: scale(1.08);
-    box-shadow:0 0 20px #00c6ff;
-}
-</style>
-""", unsafe_allow_html=True)
+# ----------------- VOICE INPUT -----------------
+st.title("🎤 Gemini AI Voice Assistant")
 
-st.markdown('<div class="title">🎤 AI Voice Mentor</div>', unsafe_allow_html=True)
+st.write("Press 'Start Mic' to speak your question:")
 
-# ---------- SESSION FOR VOICE ----------
-if "voice_text" not in st.session_state:
-    st.session_state.voice_text = ""
+# Simple audio capture using streamlit_webrtc
+class AudioProcessor(AudioProcessorBase):
+    def __init__(self):
+        self.buffer = []
 
-# ---------- VOICE INPUT COMPONENT ----------
-voice_text = components.html("""
-<div style="text-align:center;">
-    <button onclick="startDictation()" 
-    style="padding:12px 25px;border-radius:30px;
-    background:linear-gradient(90deg,#ff9966,#ff5e62);
-    color:white;border:none;font-size:16px;
-    font-weight:600;">
-    🎙️ Speak Now
-    </button>
-    <p id="status" style="margin-top:10px;color:white;"></p>
-</div>
+    def recv(self, frame: av.AudioFrame) -> av.AudioFrame:
+        # Convert audio to numpy array
+        audio = frame.to_ndarray()
+        self.buffer.append(audio)
+        return frame
 
-<script>
-function startDictation() {
-    var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'en-IN';
-    recognition.start();
+ctx = webrtc_streamer(
+    key="voice",
+    mode=WebRtcMode.SENDONLY,
+    audio_processor_factory=AudioProcessor,
+    media_stream_constraints={"audio": True, "video": False},
+    async_processing=True
+)
 
-    document.getElementById("status").innerHTML = "Listening... 🎧";
+if ctx.state.playing:
+    st.write("Listening... speak now.")
+else:
+    if ctx.audio_processor and ctx.audio_processor.buffer:
+        # Combine all captured audio chunks
+        audio_data = np.concatenate(ctx.audio_processor.buffer, axis=1)
+        # Save to temporary WAV file
+        import tempfile
+        import soundfile as sf
 
-    recognition.onresult = function(event) {
-        var text = event.results[0][0].transcript;
-        document.getElementById("status").innerHTML = "You said: " + text;
-        window.parent.postMessage(
-            {type: "streamlit:setComponentValue", value: text},
-            "*"
-        );
-    };
+        tmp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        sf.write(tmp_file.name, audio_data.T, 48000)  # transpose for soundfile
 
-    recognition.onerror = function() {
-        document.getElementById("status").innerHTML = "Mic error ❌";
-    };
-}
-</script>
-""", height=180)
-
-# ---------- UPDATE TEXTAREA FROM VOICE ----------
-if voice_text:
-    st.session_state.voice_text = voice_text
-
-question = st.text_area("Ask your AI Mentor:", value=st.session_state.voice_text)
-
-# ---------- ASK BUTTON ----------
-if st.button("🚀 Ask AI"):
-    if question.strip() == "":
-        st.warning("Please enter or speak something.")
-    else:
-        with st.spinner("AI is thinking... 🤖"):
-            answer = ask_ai(question)
-            st.success("AI Response")
-            st.write(answer)
+        # Use SpeechRecognition to convert to text
+        recognizer = sr.Recognizer()
+        with sr.AudioFile(tmp_file.name) as source:
+            audio = recognizer.record(source)
+            try:
+                question_text = recognizer.recognize_google(audio)
+                st.write(f"🗣 You said: {question_text}")
+                # Send to Gemini AI
+                answer = ask_ai(question_text)
+                st.write(f"💡 AI says: {answer}")
+            except sr.UnknownValueError:
+                st.write("⚠ Could not understand audio")
+            except sr.RequestError as e:
+                st.write(f"⚠ Speech recognition error: {e}")
