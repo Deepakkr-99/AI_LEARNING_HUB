@@ -1,7 +1,7 @@
-# 2_LearningHub.py
+# pages/2_LearningHub.py
 import streamlit as st
-from utils.firebase_config import database  # Firebase DB reference
-from ai_agent import ask_gemini
+from utils.firebase_config import database
+from utils.ai_agent import ask_gemini  # FIXED import
 
 st.set_page_config(page_title="Learning Hub", layout="wide")
 st.title("📚 Learning Hub")
@@ -11,7 +11,6 @@ lessons = database.child("lessons").get().val()  # Ensure 'lessons' exists in yo
 
 if lessons:
     for lesson_id, lesson_data in lessons.items():
-        # Each lesson in an expander
         with st.expander(lesson_data.get("title", f"Lesson {lesson_id}")):
             st.write(lesson_data.get("content", "No content available"))
 
