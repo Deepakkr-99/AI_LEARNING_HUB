@@ -13,7 +13,7 @@ except Exception as e:
     st.stop()
 
 # 🎯 Model Load
-model = genai.GenerativeModel("gemini-1.5-flash")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 # 💬 User Input
 question = st.text_area("Ask your AI Mentor:")
@@ -29,3 +29,4 @@ if st.button("🚀 Ask AI"):
                 st.write(response.text)
             except Exception as e:
                 st.error("❌ Error while generating response")
+
