@@ -1,77 +1,82 @@
-import sys
-import os
 import streamlit as st
-import streamlit.components.v1 as components
+import requests
 
-# ----------------- FIX ModuleNotFoundError -----------------
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# ---------- PAGE CONFIG ----------
+st.set_page_config(page_title="AI Text Mentor", page_icon="🤖", layout="centered")
 
-from ai_agent import ask_ai  # AI backend import
-
-# ----------------- PAGE CONFIG -----------------
-st.set_page_config(page_title="AI Voice & Text Mentor", page_icon="🤖", layout="centered")
-
-# ----------------- LOGIN CHECK -----------------
+# ---------- LOGIN CHECK ----------
 if "username" not in st.session_state:
     st.warning("Please login first")
     st.stop()
 
-# ----------------- SESSION STATE -----------------
-if "question" not in st.session_state:
-    st.session_state.question = ""
-if "answer" not in st.session_state:
-    st.session_state.answer = ""
+# ---------- GEMINI CONFIG ----------
+MODEL_NAME = "gemini-2.5-flash"
+GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 
-# ----------------- CUSTOM CSS -----------------
+def ask_ai(question: str) -> str:
+    """
+    Send question to Gemini API and get AI response.
+    """
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1/models/{MODEL_NAME}:generateContent?key={GEMINI_API_KEY}"
+        headers = {"Content-Type": "application/json"}
+        data = {"contents": [{"parts": [{"text": question}]}]}
+
+        response = requests.post(url, headers=headers, json=data, timeout=20)
+
+        if response.status_code != 200:
+            return "⚠ Gemini API Error"
+
+        result = response.json()
+        candidates = result.get("candidates")
+
+        if candidates:
+            return candidates[0]["content"]["parts"][0]["text"]
+
+        return "⚠ No response generated."
+
+    except Exception:
+        return "⚠ Error while generating response"
+
+# ---------- CUSTOM CSS ----------
 st.markdown("""
 <style>
-body { background: linear-gradient(135deg,#1f1c2c,#928dab); }
-.title { text-align:center; font-size:34px; font-weight:800; margin-bottom:20px; color:#00c6ff; }
-.stTextArea>div>div>textarea { font-size:16px; padding:12px; border-radius:12px; border:1px solid #00c6ff; background-color:#1f1c2c; color:white; }
-.stButton>button { border-radius:25px; padding:12px 28px; background: linear-gradient(90deg,#00c6ff,#0072ff); color:white; font-weight:700; border:none; transition:0.3s; }
-.stButton>button:hover { transform: scale(1.05); box-shadow:0 0 20px #00c6ff; }
-.status-text { color:white; font-weight:600; margin-top:10px; }
+body {
+    background: linear-gradient(135deg,#1f1c2c,#928dab);
+}
+.title {
+    text-align:center;
+    font-size:32px;
+    font-weight:700;
+    margin-bottom:20px;
+}
+.stButton>button {
+    border-radius:25px;
+    padding:10px 25px;
+    background: linear-gradient(90deg,#00c6ff,#0072ff);
+    color:white;
+    font-weight:600;
+    border:none;
+    transition:0.3s;
+}
+.stButton>button:hover {
+    transform: scale(1.08);
+    box-shadow:0 0 20px #00c6ff;
+}
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="title">🎤 AI Voice & Text Mentor</div>', unsafe_allow_html=True)
+st.markdown('<div class="title">🤖 AI Text Mentor</div>', unsafe_allow_html=True)
 
-# ----------------- VOICE INPUT -----------------
-voice_text = components.html("""
-<div style="text-align:center;">
-    <button onclick="startDictation()" style="padding:12px 25px;border-radius:30px;
-    background:linear-gradient(90deg,#ff9966,#ff5e62); color:white;border:none;font-size:16px;font-weight:600;">
-    🎙️ Speak Now
-    </button>
-    <p id="status" class="status-text"></p>
-</div>
+# ---------- TEXT INPUT ----------
+question = st.text_area("Ask your AI Mentor:")
 
-<script>
-function startDictation() {
-    var recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-    recognition.lang = 'en-IN';
-    recognition.start();
-    document.getElementById("status").innerHTML = "Listening... 🎧";
-    recognition.onresult = function(event) {
-        var text = event.results[0][0].transcript;
-        document.getElementById("status").innerHTML = "You said: " + text;
-        window.parent.postMessage({type:"streamlit:setComponentValue", value:text},"*");
-    };
-    recognition.onerror = function() { document.getElementById("status").innerHTML = "Mic error ❌"; }
-}
-</script>
-""", height=180)
-
-# ----------------- TEXT AREA -----------------
-question_input = st.text_area("Ask your AI Mentor:", value=st.session_state.question)
-st.session_state.question = question_input
-
-# ----------------- ASK AI BUTTON -----------------
+# ---------- ASK BUTTON ----------
 if st.button("🚀 Ask AI"):
-    if not st.session_state.question.strip():
-        st.warning("Please enter a question or speak something.")
+    if question.strip() == "":
+        st.warning("Please enter a question first.")
     else:
         with st.spinner("AI is thinking... 🤖"):
-            st.session_state.answer = ask_ai(st.session_state.question)
+            answer = ask_ai(question)
             st.success("AI Response")
-            st.write(st.session_state.answer)
+            st.write(answer)
