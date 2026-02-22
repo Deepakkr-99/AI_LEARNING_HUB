@@ -6,8 +6,8 @@ numpy
 requests
 firebase-admin
 google-generativeai
-SpeechRecognition
-pyaudio
+
+
 
 
 
