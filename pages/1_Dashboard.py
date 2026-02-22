@@ -11,12 +11,11 @@ if "username" not in st.session_state:
     st.stop()
 
 username = st.session_state["username"]
-
 st.title(f"👋 Welcome, {username}")
 
 df = get_progress(username)
 
-# ---------- Prediction Function ----------
+# ------------------ AI Prediction ------------------
 def predict_next_score(df):
     if df.empty:
         return 0
@@ -24,31 +23,28 @@ def predict_next_score(df):
     df = df.copy()
     df["Score"] = pd.to_numeric(df["Score"], errors="coerce").fillna(0)
 
-    if len(df) < 2:
+    if len(df) < 3:
         return round(df["Score"].mean(), 2)
 
-    last = df["Score"].iloc[-1]
-    prev = df["Score"].iloc[-2]
+    recent_avg = df["Score"].tail(3).mean()
+    overall_avg = df["Score"].mean()
 
-    prediction = last + (last - prev)
-    prediction = max(0, min(100, prediction))
-
-    return round(prediction, 2)
+    prediction = (recent_avg * 0.7) + (overall_avg * 0.3)
+    return round(max(0, min(100, prediction)), 2)
 
 
-# ---------- Performance Level ----------
+# ------------------ Performance Level ------------------
 def performance_level(avg):
-    if avg >= 80:
-        return "🏆 Expert Level"
-    elif avg >= 60:
-        return "🔥 Good Performer"
-    elif avg >= 40:
-        return "⚡ Average"
+    if avg >= 85:
+        return "🏆 Master"
+    elif avg >= 70:
+        return "🔥 Advanced"
+    elif avg >= 50:
+        return "⚡ Intermediate"
     else:
-        return "🚀 Needs Improvement"
+        return "🚀 Beginner"
 
 
-# ---------- No Data ----------
 if df.empty:
     st.info("No progress yet! Take quizzes to start tracking.")
 else:
@@ -60,28 +56,35 @@ else:
     predicted = predict_next_score(df)
     level = performance_level(avg_score)
 
-    # ---------- Metrics ----------
-    col1, col2, col3 = st.columns(3)
-    col1.metric("📈 Average Score", f"{round(avg_score,2)} / 100")
-    col2.metric("🏆 Best Score", f"{best_score} / 100")
-    col3.metric("📝 Total Tests Taken", total_tests)
+    improvement = 0
+    if len(df) > 1:
+        improvement = df["Score"].iloc[-1] - df["Score"].iloc[0]
 
+    weakest_topic = df.loc[df["Score"].idxmin()]["Topic"]
+
+    # ------------------ Metrics ------------------
+    col1, col2, col3, col4 = st.columns(4)
+    col1.metric("📈 Average", f"{round(avg_score,2)}")
+    col2.metric("🏆 Best", f"{best_score}")
+    col3.metric("📝 Tests", total_tests)
+    col4.metric("📊 Improvement", f"{improvement}")
+
+    # ------------------ AI Insight ------------------
     st.markdown("### 🤖 AI Performance Insight")
+
     st.success(f"Performance Level: {level}")
     st.info(f"🎯 Predicted Next Score: {predicted}")
+    st.warning(f"📌 Weakest Topic: {weakest_topic}")
 
-    # ---------- Professional Graph ----------
+    # ------------------ Performance Graph ------------------
     st.markdown("### 📊 Performance Trend")
 
     fig = px.line(
         df,
-        x="Topic",
         y="Score",
         markers=True,
-        template="plotly_dark",
-        title="Your Performance Trend"
+        template="plotly_dark"
     )
 
     fig.update_layout(yaxis_range=[0, 100])
-
     st.plotly_chart(fig, use_container_width=True)
