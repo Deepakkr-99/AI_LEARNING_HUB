@@ -11,30 +11,75 @@ if "username" not in st.session_state:
 
 username = st.session_state["username"]
 
-# ---------------- Custom Styling ----------------
+# ---------------- Modern CSS Styling ----------------
 st.markdown("""
 <style>
-.big-title {
-    font-size:28px;
-    font-weight:700;
-    text-align:center;
+.main {
+    background: linear-gradient(135deg, #141e30, #243b55);
 }
+
+.title {
+    font-size:34px;
+    font-weight:800;
+    text-align:center;
+    margin-bottom:5px;
+    color:white;
+}
+
+.subtitle {
+    text-align:center;
+    font-size:15px;
+    color:#cccccc;
+    margin-bottom:25px;
+}
+
 .card {
-    padding:25px;
-    border-radius:15px;
-    background-color:#1e1e1e;
-    box-shadow:0 0 20px rgba(0,0,0,0.4);
+    background: rgba(255,255,255,0.05);
+    padding:35px;
+    border-radius:20px;
+    box-shadow: 0 0 25px rgba(0,0,0,0.5);
+}
+
+/* Update Button */
+div.stButton:nth-of-type(1) > button {
+    width:100%;
+    height:45px;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:600;
+    background: linear-gradient(90deg,#00c6ff,#0072ff);
+    color:white;
+    border:none;
+}
+div.stButton:nth-of-type(1) > button:hover {
+    background: linear-gradient(90deg,#0072ff,#00c6ff);
+}
+
+/* Logout Button */
+div.stButton:nth-of-type(2) > button {
+    width:100%;
+    height:45px;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:600;
+    background: linear-gradient(90deg,#ff512f,#dd2476);
+    color:white;
+    border:none;
+}
+div.stButton:nth-of-type(2) > button:hover {
+    background: linear-gradient(90deg,#dd2476,#ff512f);
 }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="big-title">⚙️ Account Settings</div>', unsafe_allow_html=True)
-st.markdown(f"<p style='text-align:center;'>Logged in as <b>{username}</b></p>", unsafe_allow_html=True)
+# ---------------- HEADER ----------------
+st.markdown('<div class="title">⚙️ Account Settings</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="subtitle">Logged in as <b>{username}</b></div>', unsafe_allow_html=True)
 
 st.markdown('<div class="card">', unsafe_allow_html=True)
 
-# ---------------- PASSWORD UPDATE SECTION ----------------
-st.subheader("🔐 Change Password")
+# ---------------- PASSWORD UPDATE ----------------
+st.markdown("### 🔐 Change Password")
 
 old_pass = st.text_input("Old Password", type="password")
 new_pass = st.text_input("New Password", type="password")
@@ -50,7 +95,7 @@ def password_strength(p):
 if new_pass:
     st.info(f"Password Strength: {password_strength(new_pass)}")
 
-if st.button("✅ Update Password"):
+if st.button("🚀 Update Password"):
     ref = db.reference("users")
     user = ref.child(username).get()
 
@@ -62,6 +107,7 @@ if st.button("✅ Update Password"):
             "password": hash_password(new_pass)
         })
         st.success("🎉 Password updated successfully!")
+        st.balloons()
 
     else:
         st.error("❌ Old password incorrect")
@@ -69,9 +115,9 @@ if st.button("✅ Update Password"):
 st.markdown("---")
 
 # ---------------- LOGOUT SECTION ----------------
-st.subheader("🚪 Logout")
+st.markdown("### 🚪 Secure Logout")
 
-if st.button("🔓 Logout"):
+if st.button("🔓 Logout Now"):
     st.session_state.clear()
     st.success("Logged out successfully!")
     st.switch_page("pages/0_Login.py")
